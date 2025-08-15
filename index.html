@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PhotoPop — Photoshop‑style Editor</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <header>
+        <div class="brand"><div class="logo"></div> PhotoPop</div>
+        <div class="toolbar-group">
+          <button id="newBtn" title="New (⌘/Ctrl+N)">🆕 New</button>
+          <button id="openBtn" title="Open Image/Project (⌘/Ctrl+O)">📂 Open</button>
+          <button id="savePNGBtn" title="Export PNG (⌘/Ctrl+S)">💾 PNG</button>
+          <button id="saveJPGBtn" title="Export JPG">🖼️ JPG</button>
+          <button id="saveProjBtn" title="Save Project (.pxf)">🧩 Project</button>
+          <input id="fileInput" type="file" accept="image/*,application/json" hidden />
+        </div>
+        <div class="toolbar-group">
+          <button id="undoBtn" title="Undo (⌘/Ctrl+Z)">↶ Undo</button>
+          <button id="redoBtn" title="Redo (⇧+⌘/Ctrl+Z)">↷ Redo</button>
+        </div>
+        <div class="toolbar-group">
+          <button id="zoomOutBtn" title="Zoom Out (−)">➖</button>
+          <button id="zoomResetBtn" title="Reset Zoom (0)">⤢</button>
+          <button id="zoomInBtn" title="Zoom In (+)">➕</button>
+        </div>
+        <div class="spacer"></div>
+        <div class="toolbar-group" title="Brush size">
+          <span class="muted">Size</span>
+          <input type="range" id="brushSize" min="1" max="200" value="24" />
+          <span id="brushSizeVal">24</span>
+        </div>
+        <div class="toolbar-group" title="Opacity">
+          <span class="muted">Opacity</span>
+          <input type="range" id="brushOpacity" min="1" max="100" value="100" />
+          <span id="brushOpacityVal">100%</span>
+        </div>
+      </header>
+
+      <aside class="sidebar" id="sidebar">
+        <div class="tool active" data-tool="move" title="Move (V)">📦</div>
+        <div class="tool" data-tool="hand" title="Hand/Pan (H or Space)">🤚</div>
+        <div class="tool" data-tool="zoom" title="Zoom (Z)">🔎</div>
+        <div class="tool" data-tool="marquee" title="Rect Marquee (M)">◻️</div>
+  <div class="tool" data-tool="wand" title="Magic Wand (W)">🪄</div>
+        <div class="tool" data-tool="brush" title="Brush (B)">🖌️</div>
+        <div class="tool" data-tool="eraser" title="Eraser (E)">🩹</div>
+        <div class="tool" data-tool="bucket" title="Paint Bucket (G)">🪣</div>
+        <div class="tool" data-tool="eyedrop" title="Eyedropper (I)">🎯</div>
+        <div class="tool" data-tool="line" title="Line (L)">／</div>
+        <div class="tool" data-tool="rect" title="Rectangle (U)">▭</div>
+        <div class="tool" data-tool="ellipse" title="Ellipse (O)">⬭</div>
+        <div class="tool" data-tool="text" title="Text (T)">🔤</div>
+        <div class="tool" data-tool="crop" title="Crop (C)">✂️</div>
+        <div style="height:6px"></div>
+        <button class="tool" id="addLayerQuick" title="Add Layer">➕</button>
+      </aside>
+
+      <main class="workspace checker" id="workspace">
+        <div class="canvas-wrap" id="canvasWrap">
+          <div class="canvas-bg checker"></div>
+          <canvas id="viewport" class="viewport" width="1024" height="768"></canvas>
+          <canvas id="overlay" class="overlay" width="1024" height="768"></canvas>
+          <textarea id="textEditor" class="text-editor" spellcheck="false"></textarea>
+          <div class="drop-hint">Drop images or .pxf project files here</div>
+        </div>
+      </main>
+
+      <aside class="rightbar">
+        <div class="panel">
+          <h3>Colors</h3>
+          <div class="content">
+            <div class="swatches">
+              <input type="color" id="fgColor" value="#4ade80" title="Foreground" />
+              <input type="color" id="bgColor" value="#1f2937" title="Background" />
+              <button id="swapColors" class="btn" title="Swap (X)">↔︎</button>
+            </div>
+            <div class="row" title="Magic wand tolerance">
+              <label>Wand Tol</label>
+              <input type="range" id="wandTolerance" min="0" max="128" value="24" />
+              <span id="wandToleranceVal">24</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Brush & Shape</h3>
+          <div class="content">
+            <div class="row"><label>Hardness</label><input type="range" id="hardness" min="0" max="1" step="0.01" value="0.8"><span id="hardnessVal">0.80</span></div>
+            <div class="row"><label>Shape Mode</label>
+              <select id="shapeMode">
+                <option value="fill">Fill</option>
+                <option value="stroke">Stroke</option>
+                <option value="both">Fill + Stroke</option>
+              </select>
+            </div>
+            <div class="row"><label>Stroke</label><input type="number" id="strokeWidth" min="1" max="200" value="4" style="width:88px"></div>
+            <div class="row"><label>Font</label>
+              <select id="fontFamily">
+                <option>Inter, system-ui, Arial</option>
+                <option>Arial, Helvetica, sans-serif</option>
+                <option>Georgia, serif</option>
+                <option>Impact, Charcoal, sans-serif</option>
+                <option>"Courier New", monospace</option>
+              </select>
+            </div>
+            <div class="row"><label>Font Size</label><input type="number" id="fontSize" min="6" max="256" value="48" style="width:88px"></div>
+            <div class="row"><label>Style</label>
+              <select id="fontStyle">
+                <option value="normal">Normal</option>
+                <option value="bold">Bold</option>
+                <option value="italic">Italic</option>
+                <option value="bold italic">Bold Italic</option>
+              </select>
+            </div>
+            <div class="row"><label>Align</label>
+              <select id="textAlign">
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Layers</h3>
+          <div class="content">
+            <div class="row" style="justify-content:space-between">
+              <div>
+                <button id="addLayer" class="btn">➕ Add</button>
+                <button id="delLayer" class="btn">🗑️ Delete</button>
+              </div>
+              <div>
+                <button id="layerUp" class="btn" title="Move Up">▲</button>
+                <button id="layerDown" class="btn" title="Move Down">▼</button>
+              </div>
+            </div>
+            <div class="row">
+              <label>Blend</label>
+              <select id="blendMode">
+                <option>source-over</option>
+                <option>multiply</option>
+                <option>screen</option>
+                <option>overlay</option>
+                <option>darken</option>
+                <option>lighten</option>
+                <option>color-dodge</option>
+                <option>color-burn</option>
+                <option>hard-light</option>
+                <option>soft-light</option>
+                <option>difference</option>
+                <option>exclusion</option>
+                <option>hue</option>
+                <option>saturation</option>
+                <option>color</option>
+                <option>luminosity</option>
+              </select>
+            </div>
+            <div class="row"><label>Opacity</label><input type="range" id="layerOpacity" min="0" max="100" value="100"><span id="layerOpacityVal">100%</span></div>
+            <div id="layers" class="layers"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Adjustments</h3>
+          <div class="content">
+            <div class="row"><label>Brightness</label><input type="range" id="adjBright" min="-100" max="100" value="0"><span id="adjBrightVal">0</span></div>
+            <div class="row"><label>Contrast</label><input type="range" id="adjContrast" min="-100" max="100" value="0"><span id="adjContrastVal">0</span></div>
+            <div class="row"><label>Grayscale</label><input type="checkbox" id="adjGray"></div>
+            <div class="row" style="justify-content:space-between">
+              <button class="btn" id="applyAdj">Apply to Layer</button>
+              <button class="btn" id="resetAdj">Reset</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <footer>
+        <div>Tool: <span id="statusTool">Move</span></div>
+        <div>| Zoom: <span id="statusZoom">100%</span></div>
+        <div>| Coords: <span id="statusXY">–, –</span></div>
+        <div class="spacer"></div>
+        <div>Hints: <span class="kbd">Space</span> pan · <span class="kbd">⌘/Ctrl+Z</span> undo · <span class="kbd">X</span> swap colors</div>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+  </html>

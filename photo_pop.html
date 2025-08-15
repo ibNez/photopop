@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PhotoPop — Legacy Single‑File (see index.html)</title>
+<style>
+  .legacy-banner{position:fixed;inset:auto 8px 8px 8px;background:#111827cc;color:#e5e7eb;padding:8px 12px;border:1px solid #1f2937;border-radius:8px;font:12px system-ui}
+  .legacy-banner a{color:#60a5fa}
+  .legacy-banner .x{float:right;cursor:pointer}
+  @media (prefers-color-scheme: light){ .legacy-banner{background:#eef2ff;color:#111827;border-color:#c7d2fe} }
+  
+  /* ...existing styles... */
+/* existing stylesheet retained below */
+</style>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#111827; --panel-2:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
+    --accent:#60a5fa; --accent-2:#34d399; --danger:#ef4444; --border:#1f2937; --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:linear-gradient(180deg,#0b0f14,#0a0f18 35%,#0a0e15);color:var(--text);font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"}
+  .app{display:grid;grid-template-rows:48px 1fr 26px;grid-template-columns:72px 1fr 320px;gap:0; height:100%}
+  header{grid-column:1/4;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+  header .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+  header .brand .logo{width:26px;height:26px;border-radius:6px;background:conic-gradient(from 0deg, #60a5fa, #34d399, #a78bfa, #60a5fa); box-shadow:0 0 16px rgba(96,165,250,.5) inset}
+  header button, header .btn{height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:#0b1220;color:var(--text);display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+  header button:hover{border-color:#324055;background:#0d1426}
+  header .toolbar-group{display:flex;gap:6px;margin-left:12px}
+  header .spacer{flex:1}
+  header input[type="range"]{vertical-align:middle}
+
+  .sidebar{grid-row:2;grid-column:1;background:var(--panel-2);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:8px 6px;gap:6px}
+  .tool{width:48px;height:48px;border-radius:12px;border:1px solid var(--border);display:grid;place-items:center;background:#0b1220;cursor:pointer;user-select:none}
+  .tool.active{outline:2px solid var(--accent);box-shadow:0 0 0 3px rgba(96,165,250,.25)}
+  .tool:hover{border-color:#374151;background:#0d1426}
+  .tool svg{width:22px;height:22px;fill:currentColor}
+
+  .rightbar{grid-row:2;grid-column:3;display:flex;flex-direction:column;gap:10px;padding:10px;background:var(--panel);border-left:1px solid var(--border)}
+  .panel{background:rgba(15,23,42,.75);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .panel h3{margin:0;padding:10px 12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:rgba(2,6,23,.7);border-bottom:1px solid var(--border)}
+  .panel .content{padding:10px}
+  .row{display:flex;align-items:center;gap:8px;margin:8px 0}
+  .row label{min-width:86px;color:var(--muted)}
+  .row input[type="range"]{flex:1}
+  .row input[type="number"], .row select, .row input[type="text"]{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+  .swatches{display:flex;gap:8px;align-items:center}
+  .swatch{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);box-shadow:inset 0 0 0 2px rgba(255,255,255,.06)}
+  .checker{background:
+    linear-gradient(45deg,#0000 25%,#0003 25% 75%,#0000 75%),
+    linear-gradient(45deg,#0003 25%,#0000 25% 75%,#0003 75%);
+    background-size:16px 16px; background-position:0 0,8px 8px}
+
+  .workspace{grid-row:2;grid-column:2;position:relative;display:grid;place-items:center;overflow:hidden}
+  .canvas-wrap{position:relative; box-shadow:var(--shadow);border-radius:12px; background:#111;}
+  .canvas-bg{position:absolute;inset:0;border-radius:12px;pointer-events:none}
+  .viewport{display:block; background:transparent; border-radius:12px}
+  .overlay{position:absolute;inset:0;pointer-events:none;border-radius:12px}
+  .drop-hint{position:absolute;inset:16px;display:none;border:2px dashed #4b5563;border-radius:12px;align-items:center;justify-content:center;color:#94a3b8;background:rgba(2,6,23,.5)}
+  .workspace.dragover .drop-hint{display:flex}
+
+  .layers{display:flex;flex-direction:column;gap:6px}
+  .layer-item{display:grid;grid-template-columns:22px 1fr 42px;align-items:center;gap:8px;padding:6px;border:1px solid var(--border);border-radius:10px;background:#0b1220}
+  .layer-item input[type="checkbox"]{accent-color:var(--accent)}
+  .layer-item .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .layer-item .ops{display:flex;gap:6px}
+  .layer-item .ops button{width:32px;height:28px;border-radius:8px;border:1px solid var(--border);background:#0d1426;color:var(--text);cursor:pointer}
+
+  footer{grid-column:1/4;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:4px 10px;color:var(--muted)}
+  .kbd{border:1px solid var(--border);background:#0b1220;border-radius:6px;padding:2px 6px;color:#cbd5e1}
+
+  .text-editor{position:absolute;display:none;min-width:120px;padding:0;border:0;outline:2px dashed var(--accent);background:transparent;color:inherit}
+</style>
+</head>
+<body>
+  <div class="legacy-banner" id="legacyBanner">This page is deprecated. Use the new app at <a href="./index.html">index.html</a>. <span class="x" onclick="this.parentNode.remove()">✕</span></div>
+  <div class="app" id="app">
+    <header>
+      <div class="brand"><div class="logo"></div> PhotoPop</div>
+      <div class="toolbar-group">
+        <button id="newBtn" title="New (⌘/Ctrl+N)">🆕 New</button>
+        <button id="openBtn" title="Open Image/Project (⌘/Ctrl+O)">📂 Open</button>
+        <button id="savePNGBtn" title="Export PNG (⌘/Ctrl+S)">💾 PNG</button>
+        <button id="saveJPGBtn" title="Export JPG">🖼️ JPG</button>
+        <button id="saveProjBtn" title="Save Project (.pxf)">🧩 Project</button>
+        <input id="fileInput" type="file" accept="image/*,application/json" hidden />
+      </div>
+      <div class="toolbar-group">
+        <button id="undoBtn" title="Undo (⌘/Ctrl+Z)">↶ Undo</button>
+        <button id="redoBtn" title="Redo (⇧+⌘/Ctrl+Z)">↷ Redo</button>
+      </div>
+      <div class="toolbar-group">
+        <button id="zoomOutBtn" title="Zoom Out (−)">➖</button>
+        <button id="zoomResetBtn" title="Reset Zoom (0)">⤢</button>
+        <button id="zoomInBtn" title="Zoom In (+)">➕</button>
+      </div>
+      <div class="spacer"></div>
+      <div class="toolbar-group" title="Brush size">
+        <span class="muted">Size</span>
+        <input type="range" id="brushSize" min="1" max="200" value="24" />
+        <span id="brushSizeVal">24</span>
+      </div>
+      <div class="toolbar-group" title="Opacity">
+        <span class="muted">Opacity</span>
+        <input type="range" id="brushOpacity" min="1" max="100" value="100" />
+        <span id="brushOpacityVal">100%</span>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="tool active" data-tool="move" title="Move (V)">📦</div>
+      <div class="tool" data-tool="hand" title="Hand/Pan (H or Space)">🤚</div>
+      <div class="tool" data-tool="zoom" title="Zoom (Z)">🔎</div>
+      <div class="tool" data-tool="marquee" title="Rect Marquee (M)">◻️</div>
+      <div class="tool" data-tool="brush" title="Brush (B)">🖌️</div>
+      <div class="tool" data-tool="eraser" title="Eraser (E)">🩹</div>
+      <div class="tool" data-tool="bucket" title="Paint Bucket (G)">🪣</div>
+      <div class="tool" data-tool="eyedrop" title="Eyedropper (I)">🎯</div>
+      <div class="tool" data-tool="line" title="Line (L)">／</div>
+      <div class="tool" data-tool="rect" title="Rectangle (U)">▭</div>
+      <div class="tool" data-tool="ellipse" title="Ellipse (O)">⬭</div>
+      <div class="tool" data-tool="text" title="Text (T)">🔤</div>
+      <div class="tool" data-tool="crop" title="Crop (C)">✂️</div>
+      <div style="height:6px"></div>
+      <button class="tool" id="addLayerQuick" title="Add Layer">➕</button>
+    </aside>
+
+    <main class="workspace checker" id="workspace">
+      <div class="canvas-wrap" id="canvasWrap">
+        <div class="canvas-bg checker"></div>
+        <canvas id="viewport" class="viewport" width="1024" height="768"></canvas>
+        <canvas id="overlay" class="overlay" width="1024" height="768"></canvas>
+        <textarea id="textEditor" class="text-editor" spellcheck="false"></textarea>
+        <div class="drop-hint">Drop images or .pxf project files here</div>
+      </div>
+    </main>
+
+    <aside class="rightbar">
+      <div class="panel">
+        <h3>Colors</h3>
+        <div class="content">
+          <div class="swatches">
+            <input type="color" id="fgColor" value="#4ade80" title="Foreground" />
+            <input type="color" id="bgColor" value="#1f2937" title="Background" />
+            <button id="swapColors" class="btn" title="Swap (X)">↔︎</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Brush & Shape</h3>
+        <div class="content">
+          <div class="row"><label>Hardness</label><input type="range" id="hardness" min="0" max="1" step="0.01" value="0.8"><span id="hardnessVal">0.80</span></div>
+          <div class="row"><label>Shape Mode</label>
+            <select id="shapeMode">
+              <option value="fill">Fill</option>
+              <option value="stroke">Stroke</option>
+              <option value="both">Fill + Stroke</option>
+            </select>
+          </div>
+          <div class="row"><label>Stroke</label><input type="number" id="strokeWidth" min="1" max="200" value="4" style="width:88px"></div>
+          <div class="row"><label>Font</label>
+            <select id="fontFamily">
+              <option>Inter, system-ui, Arial</option>
+              <option>Arial, Helvetica, sans-serif</option>
+              <option>Georgia, serif</option>
+              <option>Impact, Charcoal, sans-serif</option>
+              <option>"Courier New", monospace</option>
+            </select>
+          </div>
+          <div class="row"><label>Font Size</label><input type="number" id="fontSize" min="6" max="256" value="48" style="width:88px"></div>
+          <div class="row"><label>Style</label>
+            <select id="fontStyle">
+              <option value="normal">Normal</option>
+              <option value="bold">Bold</option>
+              <option value="italic">Italic</option>
+              <option value="bold italic">Bold Italic</option>
+            </select>
+          </div>
+          <div class="row"><label>Align</label>
+            <select id="textAlign">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Layers</h3>
+        <div class="content">
+          <div class="row" style="justify-content:space-between">
+            <div>
+              <button id="addLayer" class="btn">➕ Add</button>
+              <button id="delLayer" class="btn">🗑️ Delete</button>
+            </div>
+            <div>
+              <button id="layerUp" class="btn" title="Move Up">▲</button>
+              <button id="layerDown" class="btn" title="Move Down">▼</button>
+            </div>
+          </div>
+          <div class="row">
+            <label>Blend</label>
+            <select id="blendMode">
+              <option>source-over</option>
+              <option>multiply</option>
+              <option>screen</option>
+              <option>overlay</option>
+              <option>darken</option>
+              <option>lighten</option>
+              <option>color-dodge</option>
+              <option>color-burn</option>
+              <option>hard-light</option>
+              <option>soft-light</option>
+              <option>difference</option>
+              <option>exclusion</option>
+              <option>hue</option>
+              <option>saturation</option>
+              <option>color</option>
+              <option>luminosity</option>
+            </select>
+          </div>
+          <div class="row"><label>Opacity</label><input type="range" id="layerOpacity" min="0" max="100" value="100"><span id="layerOpacityVal">100%</span></div>
+          <div id="layers" class="layers"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Adjustments</h3>
+        <div class="content">
+          <div class="row"><label>Brightness</label><input type="range" id="adjBright" min="-100" max="100" value="0"><span id="adjBrightVal">0</span></div>
+          <div class="row"><label>Contrast</label><input type="range" id="adjContrast" min="-100" max="100" value="0"><span id="adjContrastVal">0</span></div>
+          <div class="row"><label>Grayscale</label><input type="checkbox" id="adjGray"></div>
+          <div class="row" style="justify-content:space-between">
+            <button class="btn" id="applyAdj">Apply to Layer</button>
+            <button class="btn" id="resetAdj">Reset</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <footer>
+      <div>Tool: <span id="statusTool">Move</span></div>
+      <div>| Zoom: <span id="statusZoom">100%</span></div>
+      <div>| Coords: <span id="statusXY">–, –</span></div>
+      <div class="spacer"></div>
+      <div>Hints: <span class="kbd">Space</span> pan · <span class="kbd">⌘/Ctrl+Z</span> undo · <span class="kbd">X</span> swap colors</div>
+    </footer>
+  </div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+(function(){
+  // ===== Utilities =====
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+  const lerp = (a,b,t)=>a+(b-a)*t;
+  const round = (n, p=2)=>Math.round(n*10**p)/10**p;
+  const toHex = (r,g,b)=>'#'+[r,g,b].map(v=>('0'+v.toString(16)).slice(-2)).join('');
+  const fromHex = (hex)=>{const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex);return m?{r:parseInt(m[1],16),g:parseInt(m[2],16),b:parseInt(m[3],16)}:{r:0,g:0,b:0}};
+  function download(filename, dataUrl){
+    const a=document.createElement('a');a.href=dataUrl;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  }
+  function blobDownload(filename, blob){
+    const url=URL.createObjectURL(blob);download(filename, url);setTimeout(()=>URL.revokeObjectURL(url),2500);
+  }
+
+  // ===== Document & Layers =====
+  class Layer{
+    constructor(w,h,name='Layer'){
+      this.name=name;this.visible=true;this.opacity=1;this.blend='source-over';
+      this.canvas=document.createElement('canvas');this.canvas.width=w;this.canvas.height=h;this.ctx=this.canvas.getContext('2d');
+    }
+    clone(){
+      const l=new Layer(this.canvas.width,this.canvas.height,this.name);
+      l.visible=this.visible;l.opacity=this.opacity;l.blend=this.blend;
+      l.ctx.drawImage(this.canvas,0,0);return l;
+    }
+    toData(){return {name:this.name,visible:this.visible,opacity:this.opacity,blend:this.blend,src:this.canvas.toDataURL('image/png')}}
+    static async fromData(d){
+      const img=new Image();img.src=d.src;await img.decode();
+      const l=new Layer(img.width,img.height,d.name||'Layer');
+      l.visible=d.visible!==false;l.opacity=d.opacity??1;l.blend=d.blend||'source-over';
+      l.ctx.drawImage(img,0,0);return l;
+    }
+  }
+
+  class Doc{
+    constructor(w=1024,h=768){this.w=w;this.h=h;this.layers=[];this.active=0}
+    addLayer(l){this.layers.push(l);this.active=this.layers.length-1}
+    activeLayer(){return this.layers[this.active]}
+    toProject(){return {w:this.w,h:this.h,layers:this.layers.map(l=>l.toData()),active:this.active,meta:{app:'PhotoPop',v:1}}}
+    async fromProject(p){this.w=p.w;this.h=p.h;this.layers=[];for(const d of p.layers){this.layers.push(await Layer.fromData(d))}this.active=p.active||0}
+  }
+
+  // ===== App State =====
+  const dpr = window.devicePixelRatio||1;
+  const viewport=$('#viewport');
+  const overlay=$('#overlay');
+  const wrap=$('#canvasWrap');
+  const ctx=viewport.getContext('2d');
+  const octx=overlay.getContext('2d');
+  const textEditor=$('#textEditor');
+
+  const state={
+    doc:new Doc(1024,768),
+    zoom:1,
+    pan:{x:0,y:0},
+    tool:'move',
+    dragging:false,
+    pt0:null,
+    selection:null,
+    antsOffset:0,
+    spacePanning:false,
+    hist:[],
+    histIndex:-1,
+    composite:null
+  };
+
+  function resizeViewport(){
+    viewport.width = state.doc.w * dpr * state.zoom;
+    viewport.height= state.doc.h * dpr * state.zoom;
+    overlay.width = viewport.width; overlay.height=viewport.height;
+    viewport.style.width = (state.doc.w*state.zoom)+'px';
+    viewport.style.height= (state.doc.h*state.zoom)+'px';
+    overlay.style.width = viewport.style.width; overlay.style.height=viewport.style.height;
+    render();
+  }
+
+  function setZoom(factor){
+    state.zoom = clamp(factor, 0.05, 8);
+    $('#statusZoom').textContent = Math.round(state.zoom*100)+'%';
+    resizeViewport();
+  }
+
+  // ===== History =====
+  const HIST_LIMIT=20;
+  async function snapshot(){
+    const proj = state.doc.toProject();
+    const json = JSON.stringify(proj);
+    state.hist = state.hist.slice(0,state.histIndex+1);
+    state.hist.push(json);
+    if(state.hist.length>HIST_LIMIT) state.hist.shift();
+    state.histIndex = state.hist.length-1;
+  }
+  async function loadSnapshot(json){
+    const data = JSON.parse(json);
+    const doc = new Doc(data.w,data.h);
+    await doc.fromProject(data);
+    state.doc = doc; updateUIFromDoc();
+    setZoom(state.zoom);
+  }
+  async function undo(){ if(state.histIndex>0){ state.histIndex--; await loadSnapshot(state.hist[state.histIndex]);} }
+  async function redo(){ if(state.histIndex < state.hist.length-1){ state.histIndex++; await loadSnapshot(state.hist[state.histIndex]);} }
+
+  // ===== Rendering =====
+  function composite(){
+    const c=document.createElement('canvas');c.width=state.doc.w;c.height=state.doc.h;const cctx=c.getContext('2d');
+    cctx.clearRect(0,0,c.width,c.height);
+    for(const l of state.doc.layers){
+      if(!l.visible) continue; cctx.globalAlpha=l.opacity; cctx.globalCompositeOperation=l.blend; cctx.drawImage(l.canvas,0,0);
+    }
+    cctx.globalAlpha=1;cctx.globalCompositeOperation='source-over';
+    state.composite=c; return c;
+  }
+
+  function render(){
+    const comp = composite();
+    ctx.save();
+    ctx.setTransform(dpr*state.zoom,0,0,dpr*state.zoom,0,0);
+    ctx.clearRect(0,0,viewport.width,viewport.height);
+    ctx.drawImage(comp,0,0);
+    ctx.restore();
+    octx.setTransform(dpr*state.zoom,0,0,dpr*state.zoom,0,0);
+    octx.clearRect(0,0,overlay.width,overlay.height);
+    if(state.selection){
+      const {x,y,w,h}=state.selection; octx.save();
+      octx.strokeStyle='#fff'; octx.lineWidth=1/dpr; octx.setLineDash([8,6]); octx.lineDashOffset = -state.antsOffset;
+      octx.strokeRect(x+.5,y+.5,w,h); octx.restore();
+    }
+  }
+  (function ants(){ state.antsOffset=(state.antsOffset+1)%14; if(state.selection) render(); requestAnimationFrame(ants) })();
+
+  // ===== UI Binding =====
+  function updateLayersPanel(){
+    const list=$('#layers'); list.innerHTML='';
+    [...state.doc.layers].map((l,i)=>({l,i})).reverse().forEach(({l,i})=>{
+      const el=document.createElement('div');el.className='layer-item';
+      const idx=i;
+      const chk=document.createElement('input');chk.type='checkbox';chk.checked=l.visible;chk.addEventListener('change',()=>{l.visible=chk.checked;snapshot();render();});
+      const name=document.createElement('div');name.className='name';name.textContent=(i===state.doc.active?'★ ':'')+l.name;
+      const ops=document.createElement('div');ops.className='ops';
+      const sel=document.createElement('button');sel.textContent='◉'; sel.title='Activate'; sel.onclick=()=>{state.doc.active=idx; updateLayersPanel(); syncLayerControls(); render();};
+      const dup=document.createElement('button');dup.textContent='⧉'; dup.title='Duplicate'; dup.onclick=()=>{const nl=l.clone(); nl.name=l.name+' copy'; state.doc.layers.splice(idx+1,0,nl); state.doc.active=idx+1; snapshot(); updateLayersPanel(); render();};
+      ops.append(sel,dup);
+      el.append(chk,name,ops); list.appendChild(el);
+    });
+  }
+  function syncLayerControls(){
+    const L = state.doc.activeLayer(); if(!L) return;
+    $('#blendMode').value=L.blend; $('#layerOpacity').value=Math.round(L.opacity*100); $('#layerOpacityVal').textContent=Math.round(L.opacity*100)+'%';
+  }
+  function updateUIFromDoc(){ updateLayersPanel(); syncLayerControls(); resizeViewport(); }
+
+  // ===== File Ops =====
+  async function newDoc(){
+    const w = parseInt(prompt('Width?', state.doc.w)||state.doc.w);
+    const h = parseInt(prompt('Height?', state.doc.h)||state.doc.h);
+    const doc = new Doc(clamp(w,1,8192), clamp(h,1,8192));
+    doc.addLayer(new Layer(doc.w, doc.h, 'Background'));
+    state.doc = doc; state.selection=null; await snapshot(); updateUIFromDoc();
+  }
+  async function openImageFile(file){
+    const url=URL.createObjectURL(file); const img=new Image(); img.src=url; await img.decode();
+    if(state.doc.layers.length===0){ state.doc = new Doc(img.width,img.height); }
+    const L = new Layer(state.doc.w,state.doc.h, file.name.replace(/\.[^.]+$/,'') );
+    const x=Math.max(0,(state.doc.w-img.width)/2), y=Math.max(0,(state.doc.h-img.height)/2);
+    L.ctx.drawImage(img, x, y);
+    state.doc.addLayer(L); updateUIFromDoc(); await snapshot(); render(); URL.revokeObjectURL(url);
+  }
+  async function openProjectFile(file){ const txt=await file.text(); const data=JSON.parse(txt); const doc=new Doc(data.w,data.h); await doc.fromProject(data); state.doc=doc; await snapshot(); updateUIFromDoc(); }
+
+  $('#newBtn').onclick=newDoc;
+  $('#openBtn').onclick=()=>$('#fileInput').click();
+  $('#fileInput').addEventListener('change',async (e)=>{
+    const f=e.target.files[0]; if(!f) return; if(f.type==='application/json' || f.name.endsWith('.pxf')) await openProjectFile(f); else await openImageFile(f); e.target.value='';
+  });
+
+  function exportFlat(mime='image/png', quality=0.92){ const c=composite(); c.toBlob(b=>blobDownload(mime==='image/png'?'photopop.png':'photopop.jpg', b), mime, quality); }
+  document.getElementById('savePNGBtn').onclick=()=>exportFlat('image/png');
+  document.getElementById('saveJPGBtn').onclick=()=>exportFlat('image/jpeg', 0.92);
+  document.getElementById('saveProjBtn').onclick=()=>{ const json=JSON.stringify(state.doc.toProject()); const blob=new Blob([json],{type:'application/json'}); blobDownload('photopop.pxf', blob); };
+
+  const workspace=$('#workspace');
+  ['dragenter','dragover'].forEach(ev=>workspace.addEventListener(ev,(e)=>{e.preventDefault(); workspace.classList.add('dragover')}));
+  ['dragleave','drop'].forEach(ev=>workspace.addEventListener(ev,(e)=>{e.preventDefault(); if(ev==='drop'){ const f=e.dataTransfer.files[0]; if(f){ if(f.type==='application/json'||f.name.endsWith('.pxf')) openProjectFile(f); else openImageFile(f);} } workspace.classList.remove('dragover')}));
+
+  // ===== Tools =====
+  function setTool(t){ state.tool=t; $$('.tool').forEach(b=>b.classList.toggle('active', b.dataset.tool===t)); $('#statusTool').textContent=t[0].toUpperCase()+t.slice(1); }
+  $$('.tool[data-tool]').forEach(b=> b.addEventListener('click', ()=>setTool(b.dataset.tool)) );
+  $('#addLayerQuick').onclick=()=>{ const L=new Layer(state.doc.w,state.doc.h,'Layer '+(state.doc.layers.length+1)); state.doc.addLayer(L); snapshot(); updateLayersPanel(); };
+
+  const sizeInput=$('#brushSize'), sizeVal=$('#brushSizeVal'); sizeInput.oninput=()=>{sizeVal.textContent=sizeInput.value};
+  const opInput=$('#brushOpacity'), opVal=$('#brushOpacityVal'); opInput.oninput=()=>{opVal.textContent=opInput.value+'%'};
+  const hardInput=$('#hardness'), hardVal=$('#hardnessVal'); hardInput.oninput=()=>{hardVal.textContent=parseFloat(hardInput.value).toFixed(2)};
+
+  $('#swapColors').onclick=()=>{ const a=$('#fgColor'), b=$('#bgColor'); const t=a.value; a.value=b.value; b.value=t; };
+
+  $('#addLayer').onclick=()=>{const L=new Layer(state.doc.w,state.doc.h,'Layer '+(state.doc.layers.length+1)); state.doc.addLayer(L); snapshot(); updateLayersPanel();}
+  $('#delLayer').onclick=()=>{ if(state.doc.layers.length<=1) return alert('At least one layer required.'); state.doc.layers.splice(state.doc.active,1); state.doc.active=Math.max(0,state.doc.active-1); snapshot(); updateLayersPanel(); render(); }
+  $('#layerUp').onclick=()=>{ const i=state.doc.active; if(i<state.doc.layers.length-1){ const t=state.doc.layers[i]; state.doc.layers[i]=state.doc.layers[i+1]; state.doc.layers[i+1]=t; state.doc.active=i+1; snapshot(); updateLayersPanel(); render(); } }
+  $('#layerDown').onclick=()=>{ const i=state.doc.active; if(i>0){ const t=state.doc.layers[i]; state.doc.layers[i]=state.doc.layers[i-1]; state.doc.layers[i-1]=t; state.doc.active=i-1; snapshot(); updateLayersPanel(); render(); } }
+  $('#blendMode').onchange=(e)=>{ const L=state.doc.activeLayer(); L.blend=e.target.value; snapshot(); render(); }
+  $('#layerOpacity').oninput=(e)=>{ const L=state.doc.activeLayer(); L.opacity=parseInt(e.target.value)/100; $('#layerOpacityVal').textContent=Math.round(L.opacity*100)+'%'; render(); }
+
+  function applyAdjustmentsToLayer(){
+    const L=state.doc.activeLayer(); const {width:w,height:h}=L.canvas; const id=L.ctx.getImageData(0,0,w,h); const d=id.data;
+    const b=parseInt($('#adjBright').value); const c=parseInt($('#adjContrast').value); const gray=$('#adjGray').checked;
+    const br = b/100*255; const cf = (259*(c+255))/(255*(259-c));
+    for(let i=0;i<d.length;i+=4){ let r=d[i], g=d[i+1], b=d[i+2];
+      r = clamp(cf*(r-128)+128+br,0,255); g = clamp(cf*(g-128)+128+br,0,255); b = clamp(cf*(b-128)+128+br,0,255);
+      if(gray){ const avg = 0.2126*r + 0.7152*g + 0.0722*b; r=g=b=avg; }
+      d[i]=r; d[i+1]=g; d[i+2]=b;
+    }
+    L.ctx.putImageData(id,0,0); snapshot(); render();
+  }
+  $('#applyAdj').onclick=applyAdjustmentsToLayer;
+  $('#resetAdj').onclick=()=>{$('#adjBright').value=0;$('#adjContrast').value=0;$('#adjGray').checked=false;$('#adjBrightVal').textContent='0';$('#adjContrastVal').textContent='0'};
+  $('#adjBright').oninput=(e)=>$('#adjBrightVal').textContent=e.target.value;
+  $('#adjContrast').oninput=(e)=>$('#adjContrastVal').textContent=e.target.value;
+
+  function clientToDoc(e){
+    const rect=viewport.getBoundingClientRect();
+    const x = (e.clientX-rect.left)/state.zoom; const y=(e.clientY-rect.top)/state.zoom; return {x:clamp(x,0,state.doc.w), y:clamp(y,0,state.doc.h)};
+  }
+
+  function withinSelection(pt){ if(!state.selection) return true; const {x,y,w,h}=state.selection; return pt.x>=x && pt.y>=y && pt.x<=x+w && pt.y<=y+h; }
+
+  let tempPath=null;
+
+  function onDown(e){ e.preventDefault(); viewport.setPointerCapture(e.pointerId); state.dragging=true; const pt=clientToDoc(e); state.pt0=pt; $('#statusXY').textContent=`${Math.floor(pt.x)}, ${Math.floor(pt.y)}`;
+    if(state.tool==='marquee'){ state.selection={x:pt.x,y:pt.y,w:0,h:0}; }
+    if(state.tool==='text') startTextEdit(pt);
+    tempPath = [{x:pt.x,y:pt.y, p:e.pressure||1}];
+  }
+  function onMove(e){ const pt=clientToDoc(e); $('#statusXY').textContent=`${Math.floor(pt.x)}, ${Math.floor(pt.y)}`;
+    if(state.dragging){
+      if(state.tool==='move') doMovePreview(pt);
+      else if(state.tool==='hand' || state.spacePanning){ }
+      else if(state.tool==='marquee'){ const r=state.selection; r.w=pt.x-r.x; r.h=pt.y-r.y; render(); }
+      else if(state.tool==='brush' || state.tool==='eraser'){ drawBrush(pt, e); }
+      else if(state.tool==='line' || state.tool==='rect' || state.tool==='ellipse'){ tempPath[1] = {x:pt.x,y:pt.y}; render(); drawShapePreview(); }
+      else if(state.tool==='bucket'){ }
+      else if(state.tool==='crop'){ state.selection=state.selection||{x:state.pt0.x,y:state.pt0.y,w:0,h:0}; const r=state.selection; r.w=pt.x-r.x; r.h=pt.y-r.y; render(); }
+    }
+  }
+  function onUp(e){ state.dragging=false; const pt=clientToDoc(e);
+    if(state.tool==='move') commitMove(pt);
+    else if(state.tool==='marquee'){ }
+    else if(state.tool==='brush' || state.tool==='eraser'){ snapshot(); }
+    else if(state.tool==='line' || state.tool==='rect' || state.tool==='ellipse'){ commitShape(); snapshot(); }
+    else if(state.tool==='bucket'){ doBucketFill(pt); snapshot(); }
+    else if(state.tool==='crop'){ confirmCrop(); }
+    tempPath=null;
+  }
+
+  let moveDX=0, moveDY=0;
+  function doMovePreview(pt){ const dx=pt.x-state.pt0.x, dy=pt.y-state.pt0.y; moveDX=dx; moveDY=dy; render();
+    octx.save(); octx.setTransform(dpr*state.zoom,0,0,dpr*state.zoom,0,0); octx.globalAlpha=.35; octx.drawImage(state.doc.activeLayer().canvas,dx,dy); octx.restore(); }
+  function commitMove(pt){ if(moveDX||moveDY){ const L=state.doc.activeLayer(); const tmp=document.createElement('canvas'); tmp.width=L.canvas.width; tmp.height=L.canvas.height; const tctx=tmp.getContext('2d'); tctx.clearRect(0,0,tmp.width,tmp.height); tctx.drawImage(L.canvas, moveDX, moveDY); L.ctx.clearRect(0,0,L.canvas.width,L.canvas.height); L.ctx.drawImage(tmp,0,0); moveDX=moveDY=0; render(); snapshot(); } }
+
+  function drawBrush(pt,e){ const L=state.doc.activeLayer(); const isErase = state.tool==='eraser'; const size=parseInt(sizeInput.value); const hardness=parseFloat(hardInput.value); const opacity=parseInt(opInput.value)/100*(e.pressure||1);
+    const ctx=L.ctx; ctx.save(); if(isErase){ ctx.globalCompositeOperation='destination-out'; ctx.globalAlpha=opacity; } else { ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=opacity; ctx.fillStyle = $('#fgColor').value; }
+    const last=tempPath[tempPath.length-1]; const dx=pt.x-last.x, dy=pt.y-last.y; const dist=Math.hypot(dx,dy); const step=Math.max(1, size*0.35);
+    for(let t=0;t<=dist;t+=step){ const x=last.x+dx*(t/dist), y=last.y+dy*(t/dist); if(!withinSelection({x,y})) continue; drawSoftDot(ctx,x,y,size,hardness); }
+    tempPath.push({x:pt.x,y:pt.y}); ctx.restore(); render(); }
+  function drawSoftDot(ctx,x,y,size,hardness){ const r=size/2; const grad=ctx.createRadialGradient(x,y, r*hardness, x,y, r); grad.addColorStop(0, ctx.globalCompositeOperation==='destination-out' ? 'rgba(0,0,0,1)' : ctx.fillStyle ); grad.addColorStop(1, ctx.globalCompositeOperation==='destination-out' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0)'); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+
+  function doBucketFill(pt){ const L=state.doc.activeLayer(); const x=Math.floor(pt.x), y=Math.floor(pt.y); const tol=24; const {width:w,height:h}=L.canvas; const id=L.ctx.getImageData(0,0,w,h); const d=id.data; const idx=(x+y*w)*4; const target=[d[idx],d[idx+1],d[idx+2],d[idx+3]]; const fill=fromHex($('#fgColor').value); const stack=[[x,y]]; const seen=new Uint8Array(w*h);
+    function match(px,py){ const i=(px+py*w)*4; const dr=d[i]-target[0], dg=d[i+1]-target[1], db=d[i+2]-target[2], da=d[i+3]-target[3]; return Math.abs(dr)+Math.abs(dg)+Math.abs(db)+Math.abs(da) <= tol; }
+    while(stack.length){ const [cx,cy]=stack.pop(); if(cx<0||cy<0||cx>=w||cy>=h) continue; const si=cx+cy*w; if(seen[si]) continue; seen[si]=1; if(!match(cx,cy)) continue; const i=si*4; d[i]=fill.r; d[i+1]=fill.g; d[i+2]=fill.b; d[i+3]=255; stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]); }
+    L.ctx.putImageData(id,0,0); render(); }
+
+  function pickColor(pt){ const comp = state.composite||composite(); const cx=comp.getContext('2d'); const p=cx.getImageData(Math.floor(pt.x),Math.floor(pt.y),1,1).data; $('#fgColor').value=toHex(p[0],p[1],p[2]); }
+
+  function drawShapePreview(){ if(!tempPath||tempPath.length<2) return; const a=tempPath[0], b=tempPath[1]; octx.save(); octx.setTransform(dpr*state.zoom,0,0,dpr*state.zoom,0,0); octx.lineWidth=1; octx.strokeStyle='#7dd3fc'; octx.fillStyle='rgba(125,211,252,.15)';
+    if(state.tool==='line'){ octx.beginPath(); octx.moveTo(a.x,a.y); octx.lineTo(b.x,b.y); octx.stroke(); }
+    if(state.tool==='rect'){ const x=Math.min(a.x,b.x), y=Math.min(a.y,b.y), w=Math.abs(b.x-a.x), h=Math.abs(b.y-a.y); octx.strokeRect(x,y,w,h); }
+    if(state.tool==='ellipse'){ const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2; const rx=Math.abs(b.x-a.x)/2, ry=Math.abs(b.y-a.y)/2; octx.beginPath(); octx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); octx.stroke(); }
+    octx.restore();
+  }
+  function commitShape(){ if(!tempPath||tempPath.length<2) return; const a=tempPath[0], b=tempPath[1]; const L=state.doc.activeLayer(); const mode=$('#shapeMode').value; const sw=parseInt($('#strokeWidth').value); const ctx=L.ctx; ctx.save(); ctx.globalAlpha=parseInt(opInput.value)/100; ctx.fillStyle=$('#fgColor').value; ctx.strokeStyle=$('#fgColor').value; ctx.lineWidth=sw; ctx.lineJoin='round';
+    if(state.tool==='line'){ if(withinSelection(a)&&withinSelection(b)){ ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); } }
+    if(state.tool==='rect'){ const x=Math.min(a.x,b.x), y=Math.min(a.y,b.y), w=Math.abs(b.x-a.x), h=Math.abs(b.y-a.y); if(mode!=='stroke') ctx.fillRect(x,y,w,h); if(mode!=='fill'){ ctx.strokeRect(x,y,w,h);} }
+    if(state.tool==='ellipse'){ const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2; const rx=Math.abs(b.x-a.x)/2, ry=Math.abs(b.y-a.y)/2; ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); if(mode!=='stroke') ctx.fill(); if(mode!=='fill') ctx.stroke(); }
+    ctx.restore(); render(); }
+
+  function startTextEdit(pt){ textEditor.style.display='block'; textEditor.style.left=(pt.x*state.zoom)+'px'; textEditor.style.top=(pt.y*state.zoom)+'px'; textEditor.style.font=fontCSS(); textEditor.style.color=$('#fgColor').value; textEditor.value=''; textEditor.focus(); }
+  function fontCSS(){ const fam=$('#fontFamily').value; const size=parseInt($('#fontSize').value); const style=$('#fontStyle').value; return style+" "+size+"px "+fam; }
+  textEditor.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); commitText(); }
+    if(e.key==='Escape'){ e.preventDefault(); cancelText(); }
+  });
+  function commitText(){ const text=textEditor.value; if(!text.trim()){ cancelText(); return; }
+    const x=parseInt(textEditor.style.left)/state.zoom; const y=parseInt(textEditor.style.top)/state.zoom + parseInt($('#fontSize').value);
+    const L=state.doc.activeLayer(); const ctx=L.ctx; ctx.save(); ctx.font=fontCSS(); ctx.textAlign=$('#textAlign').value; ctx.textBaseline='alphabetic'; ctx.fillStyle=$('#fgColor').value; ctx.globalAlpha=parseInt(opInput.value)/100; for(const [i,line] of text.split(/\n/).entries()){ ctx.fillText(line,x,y+i*(parseInt($('#fontSize').value)*1.25)); } ctx.restore(); textEditor.style.display='none'; textEditor.value=''; snapshot(); render(); }
+  function cancelText(){ textEditor.style.display='none'; textEditor.value=''; render(); }
+
+  function confirmCrop(){ const r=normRect(state.selection); if(!r || r.w<2 || r.h<2){ state.selection=null; render(); return; } if(!confirm('Crop to selection?')){ return; }
+    state.doc.w=r.w; state.doc.h=r.h; for(const L of state.doc.layers){ const tmp=document.createElement('canvas'); tmp.width=r.w; tmp.height=r.h; tmp.getContext('2d').drawImage(L.canvas, -r.x, -r.y); L.canvas.width=r.w; L.canvas.height=r.h; L.ctx=L.canvas.getContext('2d'); L.ctx.drawImage(tmp,0,0); }
+    state.selection=null; snapshot(); resizeViewport(); }
+  function normRect(r){ if(!r) return null; const x=Math.round(Math.min(r.x, r.x+r.w)); const y=Math.round(Math.min(r.y, r.y+r.h)); const w=Math.round(Math.abs(r.w)); const h=Math.round(Math.abs(r.h)); return {x,y,w,h}; }
+
+  window.addEventListener('keydown',(e)=>{
+    const mod = e.metaKey||e.ctrlKey;
+    if(mod && e.key.toLowerCase()==='z'){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); }
+    else if(mod && e.key.toLowerCase()==='y'){ e.preventDefault(); redo(); }
+    else if(mod && e.key.toLowerCase()==='s'){ e.preventDefault(); exportFlat('image/png'); }
+    else if(mod && e.key.toLowerCase()==='o'){ e.preventDefault(); $('#fileInput').click(); }
+    else if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); newDoc(); }
+    else if(e.key===' '){ state.spacePanning=true; setTool('hand'); }
+    else if('vhmzbgeiloutc'.includes(e.key.toLowerCase())){ const map={v:'move',h:'hand',z:'zoom',m:'marquee',b:'brush',g:'bucket',e:'eraser',i:'eyedrop',l:'line',o:'ellipse',u:'rect',t:'text',c:'crop'}; setTool(map[e.key.toLowerCase()]); }
+    else if(e.key==='x' || e.key==='X'){ $('#swapColors').click(); }
+    else if(e.key==='0'){ setZoom(1); }
+    else if(e.key==='-'){ setZoom(state.zoom*0.9); }
+    else if(e.key==='='){ setZoom(state.zoom*1.1); }
+    else if(e.key==='Delete'){ const L=state.doc.activeLayer(); if(state.selection){ const r=normRect(state.selection); L.ctx.clearRect(r.x,r.y,r.w,r.h); render(); snapshot(); }
+    }
+  });
+  window.addEventListener('keyup',(e)=>{ if(e.key===' ') { state.spacePanning=false; setTool('move'); } });
+
+  viewport.addEventListener('pointerdown', onDown);
+  viewport.addEventListener('pointermove', onMove);
+  viewport.addEventListener('pointerup', onUp);
+  viewport.addEventListener('pointercancel', onUp);
+  viewport.addEventListener('wheel',(e)=>{ if(e.ctrlKey || e.metaKey){ e.preventDefault(); const f = e.deltaY<0 ? state.zoom*1.1 : state.zoom*0.9; setZoom(f); } });
+
+  $('#undoBtn').onclick=undo; $('#redoBtn').onclick=redo; $('#zoomInBtn').onclick=()=>setZoom(state.zoom*1.1); $('#zoomOutBtn').onclick=()=>setZoom(state.zoom*0.9); $('#zoomResetBtn').onclick=()=>setZoom(1);
+
+  viewport.addEventListener('click',(e)=>{ if(state.tool==='eyedrop'){ pickColor(clientToDoc(e)); }});
+  viewport.addEventListener('click',(e)=>{ if(state.tool==='bucket' && !state.dragging){ doBucketFill(clientToDoc(e)); snapshot(); }});
+
+  (async function init(){
+    state.doc.addLayer(new Layer(state.doc.w, state.doc.h, 'Background'));
+    const bg=state.doc.activeLayer(); bg.ctx.fillStyle='#111827'; bg.ctx.fillRect(0,0,state.doc.w,state.doc.h);
+    await snapshot(); updateUIFromDoc(); setTool('move');
+    runSelfTests();
+  })();
+
+  // ===== Minimal Self‑Tests (visible in console) =====
+  function runSelfTests(){
+    const tests=[]; const ok=(name,cond)=>tests.push({name,pass:!!cond});
+    ok('#savePNGBtn exists', !!document.getElementById('savePNGBtn'));
+    ok('#saveJPGBtn exists', !!document.getElementById('saveJPGBtn'));
+    ok('#saveProjBtn exists', !!document.getElementById('saveProjBtn'));
+    ok('exportFlat available', typeof exportFlat==='function');
+    ok('Doc has at least 1 layer', state.doc.layers.length>=1);
+    // history
+    const before=state.histIndex; state.doc.addLayer(new Layer(state.doc.w,state.doc.h,'Test Layer')); snapshot(); ok('snapshot increments history', state.histIndex>before);
+    undo().then(()=>{ ok('undo works', state.histIndex===before); console.table(tests); });
+  }
+
+  // Expose tiny test hook (no internal APIs leaked)
+  window.__photopopTest = { version:1, state, exportFlat };
+})();
+});
+</script>
+</body>
+</html>
