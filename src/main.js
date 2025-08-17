@@ -37,9 +37,11 @@ window.addEventListener('DOMContentLoaded', () => {
       runSelfTests();
     })();
 
-    // UI bindings
-    $('#newBtn').onclick = newDoc;
-    $('#openBtn').onclick = () => $('#fileInput').click();
+    // UI bindings - make optional since some moved to menus
+    const newBtn = $('#newBtn');
+    if (newBtn) newBtn.onclick = newDoc;
+    const openBtn = $('#openBtn');
+    if (openBtn) openBtn.onclick = () => $('#fileInput').click();
     $('#fileInput').addEventListener('change', async (e) => {
       const f = e.target.files[0];
       if (!f) return;
@@ -51,13 +53,104 @@ window.addEventListener('DOMContentLoaded', () => {
     function exportFlatHandler(mime, quality) {
       return () => exportFlat(mime, quality);
     }
-    document.getElementById('savePNGBtn').onclick = exportFlatHandler('image/png');
-    document.getElementById('saveJPGBtn').onclick = exportFlatHandler('image/jpeg', 0.92);
-    document.getElementById('saveProjBtn').onclick = () => {
-      const json = JSON.stringify(state.doc.toProject());
-      const blob = new Blob([json], { type: 'application/json' });
-      blobDownload('photopop.pxf', blob);
-    };
+    // These buttons may not exist since we moved them to menus - make optional
+    const savePNGBtn = document.getElementById('savePNGBtn');
+    if (savePNGBtn) savePNGBtn.onclick = exportFlatHandler('image/png');
+    const saveJPGBtn = document.getElementById('saveJPGBtn');
+    if (saveJPGBtn) saveJPGBtn.onclick = exportFlatHandler('image/jpeg', 0.92);
+    const saveProjBtn = document.getElementById('saveProjBtn');
+    if (saveProjBtn) {
+      saveProjBtn.onclick = () => {
+        const json = JSON.stringify(state.doc.toProject());
+        const blob = new Blob([json], { type: 'application/json' });
+        blobDownload('photopop.pxf', blob);
+      };
+    }
+
+    // Menu system: click to open, hover to switch, outside click to close
+    const menuIds = ['menuFileWrap','menuEditWrap','menuSelectWrap','menuViewWrap','menuLayerWrap','menuColorsWrap','menuToolsWrap','menuHelpWrap'];
+    let activeMenu = null;
+    let clickOpen = false;
+    
+    function setMenuOpen(id) {
+      activeMenu = id;
+      clickOpen = true;
+      menuIds.forEach(mid => {
+        const el = document.getElementById(mid);
+        if (el) el.classList.toggle('open', mid === id);
+      });
+    }
+    
+    function closeAllMenus() {
+      activeMenu = null; 
+      clickOpen = false;
+      menuIds.forEach(mid => {
+        const el = document.getElementById(mid);
+        if (el) el.classList.remove('open');
+      });
+    }
+    
+    function toggleMenu(id) {
+      const wrap = document.getElementById(id);
+      if (!wrap) {
+        console.warn('Menu element not found:', id);
+        return;
+      }
+      
+      if (wrap.classList.contains('open')) {
+        closeAllMenus();
+      } else {
+        setMenuOpen(id);
+      }
+    }
+    
+    // Wire up menu buttons
+    const menuButtons = [
+      { btnId: 'menuFileBtn', wrapId: 'menuFileWrap' },
+      { btnId: 'menuEditBtn', wrapId: 'menuEditWrap' },
+      { btnId: 'menuSelectBtn', wrapId: 'menuSelectWrap' },
+      { btnId: 'menuViewBtn', wrapId: 'menuViewWrap' },
+      { btnId: 'menuLayerBtn', wrapId: 'menuLayerWrap' },
+      { btnId: 'menuColorsBtn', wrapId: 'menuColorsWrap' },
+      { btnId: 'menuToolsBtn', wrapId: 'menuToolsWrap' },
+      { btnId: 'menuHelpBtn', wrapId: 'menuHelpWrap' }
+    ];
+    
+    menuButtons.forEach(({ btnId, wrapId }) => {
+      const btn = document.getElementById(btnId);
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          console.log(`${btnId} clicked`);
+          toggleMenu(wrapId);
+        });
+        
+        // Hover switching when a menu is already open
+        btn.addEventListener('mouseenter', () => {
+          if (clickOpen && activeMenu !== wrapId) {
+            setMenuOpen(wrapId);
+          }
+        });
+      } else {
+        console.warn(`Menu button not found: ${btnId}`);
+      }
+    });
+    
+    // Close menus on outside click
+    document.addEventListener('click', (e) => {
+      if (!activeMenu) return;
+      const isInsideMenubar = e.target.closest('.menubar');
+      if (!isInsideMenubar) {
+        closeAllMenus();
+      }
+    });
+    
+    // Close menus on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllMenus();
+      }
+    });
 
     const workspace = $('#workspace');
     ['dragenter', 'dragover'].forEach((ev) =>
@@ -372,12 +465,105 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Toolbar actions
-    $('#undoBtn').onclick = undo;
-    $('#redoBtn').onclick = redo;
+    // Toolbar actions - make optional since some moved to menus
+    const undoBtn = $('#undoBtn');
+    if (undoBtn) undoBtn.onclick = undo;
+    const redoBtn = $('#redoBtn');
+    if (redoBtn) redoBtn.onclick = redo;
     $('#zoomInBtn').onclick = () => setZoom(state.zoom * 1.1);
     $('#zoomOutBtn').onclick = () => setZoom(state.zoom * 0.9);
     $('#zoomResetBtn').onclick = () => setZoom(1);
+    
+    // Zoom slider
+    const zoomSlider = $('#zoomSlider');
+    if (zoomSlider) {
+      zoomSlider.oninput = () => {
+        const val = parseInt(zoomSlider.value);
+        setZoom(val / 100);
+      };
+    }
+
+    // Menu item handlers
+    // File menu - working items
+    const fileNew = document.getElementById('fileNew');
+    if (fileNew) fileNew.onclick = () => newDoc();
+    
+    const fileOpen = document.getElementById('fileOpen');
+    if (fileOpen) fileOpen.onclick = () => document.getElementById('fileInput').click();
+    
+    const fileExportPNG = document.getElementById('fileExportPNG');
+    if (fileExportPNG) fileExportPNG.onclick = () => exportFlat('image/png');
+    
+    const fileExportJPG = document.getElementById('fileExportJPG');
+    if (fileExportJPG) fileExportJPG.onclick = () => exportFlat('image/jpeg', 0.92);
+    
+    const fileExportAs = document.getElementById('fileExportAs');
+    if (fileExportAs) fileExportAs.onclick = () => {
+      // TODO: Implement export dialog with format selection
+      exportFlat('image/png');
+    };
+    
+    const fileSaveProject = document.getElementById('fileSaveProject');
+    if (fileSaveProject) fileSaveProject.onclick = () => {
+      const json = JSON.stringify(state.doc.toProject());
+      const blob = new Blob([json], { type: 'application/json' });
+      blobDownload('photopop.pxf', blob);
+    };
+
+    // File menu - TODO placeholders  
+    const todoItems = [
+      // File Menu TODOs
+      'fileOpenAsLayers', 'fileOpenLocation', 'fileOpenRecent',
+      'fileSave', 'fileSaveAs', 'fileSaveCopy', 'fileRevert',
+      'fileOverwriteExport', 'fileImport', 'filePrint', 'filePrintSize',
+      'fileCloseAll', 'fileQuit',
+      // Edit Menu TODOs  
+      'editFade', 'editCut', 'editCopy', 'editCopyVisible', 'editPaste', 
+      'editPasteAs', 'editPasteInto', 'editClear', 'editFill', 'editStroke', 'editPreferences',
+      // Select Menu TODOs
+      'selectAll', 'selectNone', 'selectInvert', 'selectFloat', 'selectByColor', 
+      'selectFromPath', 'selectFeather', 'selectGrow', 'selectShrink', 'selectBorder', 
+      'selectSave', 'selectPath',
+      // View Menu TODOs
+      'viewZoomIn', 'viewZoomOut', 'viewZoomFit', 'viewZoom100', 'viewFullscreen',
+      'viewShowAll', 'viewDotForDot', 'viewShowGuides', 'viewSnapGuides', 'viewShowGrid',
+      'viewSnapGrid', 'viewShowRulers', 'viewShowScrollbars', 'viewShowSelection', 'viewShowLayer',
+      // Layer Menu TODOs
+      'layerNew', 'layerDuplicate', 'layerAnchor', 'layerMergeDown', 'layerFlatten',
+      'layerTextAlongPath', 'layerScale', 'layerCrop', 'layerRotate', 'layerTransparency',
+      'layerMask', 'layerDelete',
+      // Colors Menu TODOs
+      'colorsForeground', 'colorsBackground', 'colorsSwap', 'colorsDefault', 'colorsInvert',
+      'colorsDesaturate', 'colorsBrightness', 'colorsHueSaturation', 'colorsColorBalance',
+      'colorsCurves', 'colorsLevels', 'colorsAutoNormalize', 'colorsAutoWhiteBalance', 'colorsAutoColorEnhance',
+      // Tools Menu TODOs
+      'toolsSelection', 'toolsPaint', 'toolsTransform', 'toolsColor', 'toolsRectSelect',
+      'toolsEllipseSelect', 'toolsFreeSelect', 'toolsFuzzySelect', 'toolsByColorSelect',
+      'toolsPaintbrush', 'toolsPencil', 'toolsEraser', 'toolsAirbrush', 'toolsClone',
+      'toolsHeal', 'toolsPerspective', 'toolsBucketFill', 'toolsGradient', 'toolsText',
+      // Help Menu TODOs
+      'helpHelp', 'helpContextHelp', 'helpTipOfDay', 'helpUserManual', 'helpGIMPOnline',
+      'helpPluginBrowser', 'helpProcedureBrowser', 'helpAbout'
+    ];
+    
+    todoItems.forEach(itemId => {
+      const item = document.getElementById(itemId);
+      if (item) {
+        item.onclick = () => {
+          // Extract feature name from itemId (remove prefix like 'file', 'edit', etc.)
+          const feature = itemId.replace(/^(file|edit|select|view|layer|colors?|tools?|help)/, '')
+                                .replace(/([A-Z])/g, ' $1').trim();
+          alert(`🚧 TODO: ${feature || itemId} feature not implemented yet`);
+        };
+      }
+    });
+
+    // Edit menu
+    const editUndo = document.getElementById('editUndo');
+    if (editUndo) editUndo.onclick = () => undo();
+    
+    const editRedo = document.getElementById('editRedo');
+    if (editRedo) editRedo.onclick = () => redo();
 
     // Canvas interactions
     wireCanvasEvents();

@@ -90,6 +90,8 @@ export function resizeViewport() {
 export function setZoom(factor) {
   state.zoom = clamp(factor, 0.05, 8);
   $('#statusZoom').textContent = Math.round(state.zoom * 100) + '%';
+  const zs = document.getElementById('zoomSlider');
+  if (zs) zs.value = String(Math.round(state.zoom * 100));
   resizeViewport();
 }
 
@@ -196,6 +198,7 @@ export async function newDoc() {
   state.selMask = null;
   state.selEdges = [];
   await snapshot();
+  resizeViewport(); // Ensure the viewport is resized after creating a new document
   updateUIFromDoc();
 }
 
@@ -204,14 +207,15 @@ export async function openImageFile(file) {
   const img = new Image();
   img.src = url;
   await img.decode();
-  if (state.doc.layers.length === 0) {
-    state.doc = new Doc(img.width, img.height);
-  }
-  const L = new Layer(state.doc.w, state.doc.h, file.name.replace(/\.[^.]+$/, ''));
-  const x = Math.max(0, (state.doc.w - img.width) / 2),
-    y = Math.max(0, (state.doc.h - img.height) / 2);
-  L.ctx.drawImage(img, x, y);
-  state.doc.addLayer(L);
+  // Always size the document to the image dimensions to avoid cropping
+  const doc = new Doc(img.naturalWidth || img.width, img.naturalHeight || img.height);
+  const L = new Layer(doc.w, doc.h, file.name.replace(/\.[^.]+$/, ''));
+  L.ctx.drawImage(img, 0, 0);
+  doc.addLayer(L);
+  state.doc = doc;
+  state.selection = null;
+  state.selMask = null;
+  state.selEdges = [];
   updateUIFromDoc();
   await snapshot();
   render();
@@ -314,9 +318,9 @@ export function pickColor(pt) {
 export function runSelfTests() {
   const tests = [];
   const ok = (name, cond) => tests.push({ name, pass: !!cond });
-  ok('#savePNGBtn exists', !!document.getElementById('savePNGBtn'));
-  ok('#saveJPGBtn exists', !!document.getElementById('saveJPGBtn'));
-  ok('#saveProjBtn exists', !!document.getElementById('saveProjBtn'));
+  ok('#fileExportPNG exists', !!document.getElementById('fileExportPNG'));
+  ok('#fileExportJPG exists', !!document.getElementById('fileExportJPG'));
+  ok('#fileSaveProject exists', !!document.getElementById('fileSaveProject'));
   ok('exportFlat available', typeof exportFlat === 'function');
   ok('Doc has at least 1 layer', state.doc.layers.length >= 1);
   const before = state.histIndex;

@@ -10,22 +10,197 @@
     <div class="app" id="app">
       <header>
         <div class="brand"><div class="logo"></div> PhotoPop</div>
-        <div class="toolbar-group">
-          <button id="newBtn" title="New (⌘/Ctrl+N)">🆕 New</button>
-          <button id="openBtn" title="Open Image/Project (⌘/Ctrl+O)">📂 Open</button>
-          <button id="savePNGBtn" title="Export PNG (⌘/Ctrl+S)">💾 PNG</button>
-          <button id="saveJPGBtn" title="Export JPG">🖼️ JPG</button>
-          <button id="saveProjBtn" title="Save Project (.pxf)">🧩 Project</button>
-          <input id="fileInput" type="file" accept="image/*,application/json" hidden />
+        <div class="menubar">
+          <div class="menu" id="menuFileWrap">
+            <button class="menubtn" id="menuFileBtn">File</button>
+            <div class="menu-list" id="menuFile">
+              <button class="menu-item" id="fileNew">New… <span class="accel">⌘N</span></button>
+              <button class="menu-item" id="fileOpen">Open… <span class="accel">⌘O</span></button>
+              <button class="menu-item" id="fileOpenAsLayers">🚧 Open as Layers… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="fileOpenLocation">🚧 Open Location… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="fileOpenRecent">🚧 Open Recent <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="fileSave">🚧 Save <span class="accel">⌘S</span></button>
+              <button class="menu-item" id="fileSaveAs">🚧 Save As… <span class="accel">⇧⌘S</span></button>
+              <button class="menu-item" id="fileSaveCopy">🚧 Save a Copy… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="fileRevert">🚧 Revert <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="fileExportAs">Export As… <span class="accel">⇧⌘E</span></button>
+              <button class="menu-item" id="fileExportPNG">Export PNG</button>
+              <button class="menu-item" id="fileExportJPG">Export JPG</button>
+              <button class="menu-item" id="fileOverwriteExport">🚧 Overwrite Export <span class="accel">⌘E</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="fileImport">🚧 Import <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="filePrint">🚧 Print… <span class="accel">⌘P</span></button>
+              <button class="menu-item" id="filePrintSize">🚧 Print Size… <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="fileSaveProject">Save Project</button>
+              <button class="menu-item" id="fileCloseAll">🚧 Close All <span class="accel">⇧⌘W</span></button>
+              <button class="menu-item" id="fileQuit">🚧 Quit <span class="accel">⌘Q</span></button>
+            </div>
+          </div>
+          <div class="menu" id="menuEditWrap">
+            <button class="menubtn" id="menuEditBtn">Edit</button>
+            <div class="menu-list" id="menuEdit">
+              <button class="menu-item" id="editUndo">Undo <span class="accel">⌘Z</span></button>
+              <button class="menu-item" id="editRedo">Redo <span class="accel">⇧⌘Z</span></button>
+              <button class="menu-item" id="editFade">🚧 Fade… <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="editCut">🚧 Cut <span class="accel">⌘X</span></button>
+              <button class="menu-item" id="editCopy">🚧 Copy <span class="accel">⌘C</span></button>
+              <button class="menu-item" id="editCopyVisible">🚧 Copy Visible <span class="accel">TODO</span></button>
+              <button class="menu-item" id="editPaste">🚧 Paste <span class="accel">⌘V</span></button>
+              <button class="menu-item" id="editPasteAs">🚧 Paste As <span class="accel">TODO</span></button>
+              <button class="menu-item" id="editPasteInto">🚧 Paste Into <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="editClear">🚧 Clear <span class="accel">Delete</span></button>
+              <button class="menu-item" id="editFill">🚧 Fill with FG Color <span class="accel">TODO</span></button>
+              <button class="menu-item" id="editStroke">🚧 Stroke Selection <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="editPreferences">🚧 Preferences <span class="accel">⌘,</span></button>
+            </div>
+          </div>
+                    <div class="menu" id="menuSelectWrap">
+            <button class="menubtn" id="menuSelectBtn">Select</button>
+            <div class="menu-list" id="menuSelect">
+              <button class="menu-item" id="selectAll">🚧 All <span class="accel">⌘A</span></button>
+              <button class="menu-item" id="selectNone">🚧 None <span class="accel">⇧⌘A</span></button>
+              <button class="menu-item" id="selectInvert">🚧 Invert <span class="accel">⌘I</span></button>
+              <button class="menu-item" id="selectFloat">🚧 Float <span class="accel">⇧⌘L</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="selectByColor">🚧 By Color <span class="accel">TODO</span></button>
+              <button class="menu-item" id="selectFromPath">🚧 From Path <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="selectFeather">🚧 Feather… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="selectGrow">🚧 Grow… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="selectShrink">🚧 Shrink… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="selectBorder">🚧 Border… <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="selectSave">🚧 Save to Channel <span class="accel">TODO</span></button>
+              <button class="menu-item" id="selectPath">🚧 To Path <span class="accel">TODO</span></button>
+            </div>
+          </div>
+                    <div class="menu" id="menuViewWrap">
+            <button class="menubtn" id="menuViewBtn">View</button>
+            <div class="menu-list" id="menuView">
+              <button class="menu-item" id="viewZoomIn">🚧 Zoom In <span class="accel">⌘+</span></button>
+              <button class="menu-item" id="viewZoomOut">🚧 Zoom Out <span class="accel">⌘-</span></button>
+              <button class="menu-item" id="viewZoomFit">🚧 Fit Page in Window <span class="accel">⌘E</span></button>
+              <button class="menu-item" id="viewZoom100">🚧 Zoom to Selection <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="viewFullscreen">🚧 Fullscreen <span class="accel">F11</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="viewShowAll">🚧 Show All <span class="accel">TODO</span></button>
+              <button class="menu-item" id="viewDotForDot">🚧 Dot for Dot <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="viewShowGuides">🚧 Show Guides <span class="accel">TODO</span></button>
+              <button class="menu-item" id="viewSnapGuides">🚧 Snap to Guides <span class="accel">TODO</span></button>
+              <button class="menu-item" id="viewShowGrid">🚧 Show Grid <span class="accel">TODO</span></button>
+              <button class="menu-item" id="viewSnapGrid">🚧 Snap to Grid <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="viewShowRulers">🚧 Show Rulers <span class="accel">TODO</span></button>
+              <button class="menu-item" id="viewShowScrollbars">🚧 Show Scrollbars <span class="accel">TODO</span></button>
+              <button class="menu-item" id="viewShowSelection">🚧 Show Selection <span class="accel">TODO</span></button>
+              <button class="menu-item" id="viewShowLayer">🚧 Show Layer Boundary <span class="accel">TODO</span></button>
+            </div>
+          </div>
+                    <div class="menu" id="menuLayerWrap">
+            <button class="menubtn" id="menuLayerBtn">Layer</button>
+            <div class="menu-list" id="menuLayer">
+              <button class="menu-item" id="layerNew">🚧 New Layer… <span class="accel">⇧⌘N</span></button>
+              <button class="menu-item" id="layerDuplicate">🚧 Duplicate Layer <span class="accel">TODO</span></button>
+              <button class="menu-item" id="layerAnchor">🚧 Anchor Layer <span class="accel">⌘H</span></button>
+              <button class="menu-item" id="layerMergeDown">🚧 Merge Down <span class="accel">TODO</span></button>
+              <button class="menu-item" id="layerFlatten">🚧 Flatten Image <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="layerTextAlongPath">🚧 Text along Path <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="layerScale">🚧 Scale Layer… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="layerCrop">🚧 Crop to Selection <span class="accel">TODO</span></button>
+              <button class="menu-item" id="layerRotate">🚧 Transform <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="layerTransparency">🚧 Transparency <span class="accel">TODO</span></button>
+              <button class="menu-item" id="layerMask">🚧 Layer Mask <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="layerDelete">🚧 Delete Layer <span class="accel">TODO</span></button>
+            </div>
+          </div>
+                    <div class="menu" id="menuColorsWrap">
+            <button class="menubtn" id="menuColorsBtn">Colors</button>
+            <div class="menu-list" id="menuColors">
+              <button class="menu-item" id="colorsForeground">🚧 Foreground Color… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsBackground">🚧 Background Color… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsSwap">🚧 Swap Colors <span class="accel">X</span></button>
+              <button class="menu-item" id="colorsDefault">🚧 Default Colors <span class="accel">D</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="colorsInvert">🚧 Invert <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsDesaturate">🚧 Desaturate <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="colorsBrightness">🚧 Brightness-Contrast… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsHueSaturation">🚧 Hue-Saturation… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsColorBalance">🚧 Color Balance… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsCurves">🚧 Curves… <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsLevels">🚧 Levels… <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="colorsAutoNormalize">🚧 Auto Normalize <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsAutoWhiteBalance">🚧 Auto White Balance <span class="accel">TODO</span></button>
+              <button class="menu-item" id="colorsAutoColorEnhance">🚧 Auto Color Enhance <span class="accel">TODO</span></button>
+            </div>
+          </div>
+                    <div class="menu" id="menuToolsWrap">
+            <button class="menubtn" id="menuToolsBtn">Tools</button>
+            <div class="menu-list" id="menuTools">
+              <button class="menu-item" id="toolsSelection">🚧 Selection Tools <span class="accel">TODO</span></button>
+              <button class="menu-item" id="toolsPaint">🚧 Paint Tools <span class="accel">TODO</span></button>
+              <button class="menu-item" id="toolsTransform">🚧 Transform Tools <span class="accel">TODO</span></button>
+              <button class="menu-item" id="toolsColor">🚧 Color Tools <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="toolsRectSelect">🚧 Rectangle Select <span class="accel">R</span></button>
+              <button class="menu-item" id="toolsEllipseSelect">🚧 Ellipse Select <span class="accel">E</span></button>
+              <button class="menu-item" id="toolsFreeSelect">🚧 Free Select <span class="accel">F</span></button>
+              <button class="menu-item" id="toolsFuzzySelect">🚧 Fuzzy Select <span class="accel">U</span></button>
+              <button class="menu-item" id="toolsByColorSelect">🚧 By Color Select <span class="accel">⇧O</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="toolsPaintbrush">🚧 Paintbrush <span class="accel">P</span></button>
+              <button class="menu-item" id="toolsPencil">🚧 Pencil <span class="accel">N</span></button>
+              <button class="menu-item" id="toolsEraser">🚧 Eraser <span class="accel">⇧E</span></button>
+              <button class="menu-item" id="toolsAirbrush">🚧 Airbrush <span class="accel">A</span></button>
+              <button class="menu-item" id="toolsClone">🚧 Clone <span class="accel">C</span></button>
+              <button class="menu-item" id="toolsHeal">🚧 Heal <span class="accel">H</span></button>
+              <button class="menu-item" id="toolsPerspective">🚧 Perspective <span class="accel">⇧P</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="toolsBucketFill">🚧 Bucket Fill <span class="accel">⇧B</span></button>
+              <button class="menu-item" id="toolsGradient">🚧 Gradient <span class="accel">G</span></button>
+              <button class="menu-item" id="toolsText">🚧 Text <span class="accel">T</span></button>
+            </div>
+          </div>
+                    <div class="menu" id="menuHelpWrap">
+            <button class="menubtn" id="menuHelpBtn">Help</button>
+            <div class="menu-list" id="menuHelp">
+              <button class="menu-item" id="helpHelp">🚧 Help <span class="accel">F1</span></button>
+              <button class="menu-item" id="helpContextHelp">🚧 Context Help <span class="accel">⇧F1</span></button>
+              <button class="menu-item" id="helpTipOfDay">🚧 Tip of the Day <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="helpUserManual">🚧 User Manual <span class="accel">TODO</span></button>
+              <button class="menu-item" id="helpGIMPOnline">🚧 GIMP Online <span class="accel">TODO</span></button>
+              <button class="menu-item" id="helpPluginBrowser">🚧 Plugin Browser <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="helpProcedureBrowser">🚧 Procedure Browser <span class="accel">TODO</span></button>
+              <div class="menu-sep"></div>
+              <button class="menu-item" id="helpAbout">🚧 About PhotoPop <span class="accel">TODO</span></button>
+            </div>
+          </div>
         </div>
-        <div class="toolbar-group">
-          <button id="undoBtn" title="Undo (⌘/Ctrl+Z)">↶ Undo</button>
-          <button id="redoBtn" title="Redo (⇧+⌘/Ctrl+Z)">↷ Redo</button>
-        </div>
+        <input id="fileInput" type="file" accept="image/*,application/json" hidden />
         <div class="toolbar-group">
           <button id="zoomOutBtn" title="Zoom Out (−)">➖</button>
           <button id="zoomResetBtn" title="Reset Zoom (0)">⤢</button>
           <button id="zoomInBtn" title="Zoom In (+)">➕</button>
+        </div>
+        <div class="toolbar-group" title="Zoom">
+          <span class="muted">Zoom</span>
+          <input type="range" id="zoomSlider" min="5" max="800" value="100" />
         </div>
         <div class="spacer"></div>
         <div class="toolbar-group" title="Brush size">
